@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">BakingApp</string>
+    <string name="default_error_message">something wrong happend</string>
+    <string name="recipe_picture">recipe\'s picture</string>
+    <string name="viewRecipe">VIEW RECIPE</string>
+    <string name="title_item_list">Items</string>
+    <string name="title_item_detail">Item Detail</string>
+    <string name="bookmark">bookmark</string>
+    <string name="next_step">Next Step</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="empty_string">Bookmark a Recipe to display Ingredients</string>
+    <string name="recipe_step_image">image of recipe\'s step</string>
+</resources>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/textView_ingredientName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/textView_ingredientMeasure"
+        android:layout_marginStart="@dimen/material_baseline_grid_0.5x"
+        android:ellipsize="end"
+        android:maxLines="@integer/material_responsive_content_levels"
+        android:singleLine="true"
+        android:textColor="@color/material_color_black"
+        tools:layout_editor_absoluteX="44dp"
+        tools:layout_editor_absoluteY="32dp"
+        tools:text="IngredientName" />
+
+    <TextView
+        android:id="@+id/textView_ingredientMeasure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/material_baseline_grid_0.5x"
+        android:layout_toStartOf="@+id/textView_ingredientUnit"
+        android:textAlignment="center"
+        android:textColor="@color/material_color_black"
+        tools:layout_editor_absoluteX="131dp"
+        tools:layout_editor_absoluteY="32dp"
+        tools:text="200" />
+
+    <TextView
+        android:id="@+id/textView_ingredientUnit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="@dimen/material_baseline_grid_0.5x"
+        android:textAlignment="center"
+        android:textColor="@color/material_color_black"
+        tools:layout_editor_absoluteX="309dp"
+        tools:layout_editor_absoluteY="32dp"
+        tools:text="G" />
+</RelativeLayout>

@@ -1,0 +1,127 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion rootProject.compileSdkVersion
+    defaultConfig {
+        applicationId "com.example.pablo.bakingapp"
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
+        versionCode rootProject.versionCode
+        versionName rootProject.versionName
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
+    }
+    buildTypes {
+        debug {
+            buildConfigField("String", "RECIPES_ENDPOINT", "\"https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/\"")
+        }
+        release {
+            buildConfigField("String", "RECIPES_ENDPOINT", "\"https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/\"")
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+
+    configurations.all { config ->
+        resolutionStrategy.force "com.android.support:support-annotations:${rootProject.supportLibrary}"
+
+        if (config.name.contains('UnitTest')) {
+            config.resolutionStrategy.eachDependency { details ->
+                if (details.requested.group == 'com.squareup.leakcanary' && details.requested.name == 'leakcanary-android') {
+                    details.useTarget(group: details.requested.group, name: 'leakcanary-android-no-op', version: details.requested.version)
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    //region Java Core
+    implementation "org.apache.commons:commons-lang3:${commonsLang}"
+    //endregion
+
+    //region SupportLibraries
+    implementation group: 'com.android.support', name: 'appcompat-v7', version: supportLibrary
+    implementation "com.android.support:recyclerview-v7:${supportLibrary}"
+    implementation "com.android.support:palette-v7:${supportLibrary}"
+    implementation "com.android.support:cardview-v7:${supportLibrary}"
+    implementation "com.android.support:design:${supportLibrary}"
+    implementation "com.android.support:support-annotations:${supportLibrary}"
+    implementation "com.android.support:support-v4:${supportLibrary}"
+    implementation group: 'com.android.support.constraint', name: 'constraint-layout', version: constraintLayout
+    //endregion
+
+    //region UI
+    implementation "blue.aodev:material-values:${materialValues}"
+    implementation "com.hannesdorfmann:adapterdelegates3:${adapterDelegate}"
+    implementation "com.github.vipulasri:timelineview:${timelineview}"
+    //endregion
+
+    //region Reactive
+    implementation group: 'io.reactivex.rxjava2', name: 'rxjava', version: rxJava
+    implementation group: 'io.reactivex.rxjava2', name: 'rxandroid', version: rxAndroid
+    //endregion
+
+    //region Network
+    implementation group: 'com.squareup.retrofit2', name: 'retrofit', version: retrofit2
+    implementation group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: retrofit2
+    implementation group: 'com.squareup.retrofit2', name: 'converter-jackson', version: retrofit2
+
+    implementation "com.squareup.picasso:picasso:${picasso}"
+
+    implementation "com.facebook.stetho:stetho:${stetho}"
+    implementation "com.facebook.stetho:stetho-okhttp3:${stetho}"
+    implementation "com.squareup.okhttp3:okhttp:${okhttp}"
+    //endregion
+
+    //region Media
+    implementation "com.google.android.exoplayer:exoplayer:${exoPlayer}"
+    //endregion
+
+    //region De/Serialiszation
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jackson
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: jackson
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: jackson
+    //endregion
+
+    //region binding
+    implementation group: 'com.jakewharton', name: 'butterknife', version: butterknife
+    annotationProcessor group: 'com.jakewharton', name: 'butterknife-compiler', version: butterknife
+    //endregion
+
+    //region Debug
+    implementation "com.jakewharton.timber:timber:${timber}"
+    //endregion
+
+    //region MemoryLeaks
+    debugImplementation "com.squareup.leakcanary:leakcanary-android:${leakCanary}"
+    releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:${leakCanary}"
+    //endregion
+
+    //region Unit Tests
+    testImplementation "junit:junit:${jUnit}"
+
+    androidTestImplementation "com.android.support.test:runner:${runner}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:${espresso}"
+    testImplementation "org.mockito:mockito-core:${mockito}"
+
+    debugImplementation "com.android.support.test.espresso.idling:idling-concurrent:3.0.1"
+    androidTestImplementation ("com.android.support.test.espresso:espresso-intents:$espresso")
+
+    debugImplementation ("com.jakewharton.espresso:okhttp3-idling-resource:${okhttp3IdlingResource}") {
+        exclude module: 'support-annotations'
+    }
+
+    androidTestImplementation('com.android.support.test.espresso:espresso-contrib:2.0') {
+        exclude group: 'com.android.support', module: 'appcompat'
+        exclude group: 'com.android.support', module: 'support-v4'
+        exclude module: 'recyclerview-v7'
+    }
+
+    //endregion
+}
