@@ -1,18 +1,14 @@
 package com.example.pablo.bakingapp;
 
 import android.support.test.espresso.Espresso;
-import android.support.test.espresso.IdlingRegistry;
 import android.support.test.espresso.contrib.RecyclerViewActions;
 import android.support.test.espresso.intent.Intents;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.example.pablo.bakingapp.data.network.OkHttpProvider;
 import com.example.pablo.bakingapp.recipedetail.RecipeStepListActivity;
 import com.example.pablo.bakingapp.recipes.CustomIdlingResource;
-import com.example.pablo.bakingapp.recipes.IdlingResources;
 import com.example.pablo.bakingapp.recipes.MainActivity;
-import com.jakewharton.espresso.OkHttp3IdlingResource;
 
 import org.junit.After;
 import org.junit.Before;

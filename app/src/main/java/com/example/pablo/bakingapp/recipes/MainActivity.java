@@ -7,10 +7,10 @@ import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-import android.support.test.espresso.IdlingResource;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -25,13 +25,14 @@ import com.example.pablo.bakingapp.data.model.Recipe;
 import com.example.pablo.bakingapp.data.network.NetworkMonitor;
 import com.example.pablo.bakingapp.recipedetail.RecipeStepListActivity;
 import com.example.pablo.bakingapp.recipes.CustomIdlingResource;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends BaseActivity implements IMVPMainView, RecipesAdapter.ListItemClickListener, MainNavigator{
+public class MainActivity extends BaseActivity implements IMVPMainView, RecipesAdapter.ListItemClickListener, MainNavigator {
 
     public static final String RECIPE = "recipe";
     private static final String RECIPE_LIST = "recipList";
@@ -60,7 +61,7 @@ public class MainActivity extends BaseActivity implements IMVPMainView, RecipesA
         presenter.onAttach(this);
     }
 
-    private void setView(boolean isTablet){
+    private void setView(boolean isTablet) {
         Display display = getWindowManager().getDefaultDisplay();
         int width = display.getWidth();
         RecyclerView.LayoutManager lManager;
@@ -73,8 +74,8 @@ public class MainActivity extends BaseActivity implements IMVPMainView, RecipesA
         recyclerView.setAdapter(adapter);
     }
 
-    private void getRecipes(Bundle savedInstanceState){
-        if (savedInstanceState != null && savedInstanceState.containsKey(RECIPE_LIST)){
+    private void getRecipes(Bundle savedInstanceState) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(RECIPE_LIST)) {
             ArrayList<Recipe> list = savedInstanceState.getParcelableArrayList(RECIPE_LIST);
             presenter.setRecipeList(list);
             updateList(list);
@@ -186,7 +187,7 @@ class RecipesAdapter extends RecyclerView.Adapter<RecipesAdapter.ViewHolder> {
 
     private final boolean isTablet;
     private final int width;
-    private ArrayList<Recipe> recipes =  new ArrayList<>();
+    private ArrayList<Recipe> recipes = new ArrayList<>();
     private Context context;
     private ListItemClickListener listener;
 
@@ -204,8 +205,8 @@ class RecipesAdapter extends RecyclerView.Adapter<RecipesAdapter.ViewHolder> {
         if (!isTablet)
             view.getLayoutParams().height = width / 2;
         ViewHolder viewHolder;
-        switch (viewType){
-            case R.layout.recip_header_card :
+        switch (viewType) {
+            case R.layout.recip_header_card:
                 viewHolder = new ViewHolderHeader(view);
                 break;
             case R.layout.recipe_title_right_card:
@@ -241,10 +242,10 @@ class RecipesAdapter extends RecyclerView.Adapter<RecipesAdapter.ViewHolder> {
 
     @Override
     public int getItemCount() {
-        return (recipes == null)? 0:recipes.size();
+        return (recipes == null) ? 0 : recipes.size();
     }
 
-    public void updateList(ArrayList<Recipe> recipes){
+    public void updateList(ArrayList<Recipe> recipes) {
         this.recipes = recipes;
         notifyDataSetChanged();
     }
@@ -253,7 +254,7 @@ class RecipesAdapter extends RecyclerView.Adapter<RecipesAdapter.ViewHolder> {
         void onItemClick(Recipe recipe);
     }
 
-    public abstract class ViewHolder extends RecyclerView.ViewHolder  implements View.OnClickListener {
+    public abstract class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -270,7 +271,7 @@ class RecipesAdapter extends RecyclerView.Adapter<RecipesAdapter.ViewHolder> {
         }
     }
 
-    public class ViewHolderHeader extends ViewHolder{
+    public class ViewHolderHeader extends ViewHolder {
 
         @BindView(R.id.textView_recipeTitle)
         TextView title;
@@ -288,11 +289,20 @@ class RecipesAdapter extends RecyclerView.Adapter<RecipesAdapter.ViewHolder> {
         void bind(Recipe recipe) {
             title.setText(recipe.getName().toUpperCase());
             viewRecipe.setText(context.getText(R.string.viewRecipe));
-            picture.setImageResource(R.drawable.default_picture_recipe);
+            if (!TextUtils.isEmpty(recipe.getImage()))
+                Picasso.with(context)
+                        .load(recipe.getImage())
+                        .centerCrop()
+                        .placeholder(R.drawable.default_picture_recipe)
+                        .error(R.drawable.default_picture_recipe)
+                        .fit()
+                        .into(picture);
+            else
+                picture.setImageResource(R.drawable.default_picture_recipe);
         }
     }
 
-    public class ViewHolderDouble extends ViewHolder{
+    public class ViewHolderDouble extends ViewHolder {
 
         @BindView(R.id.textView_recipeTitle)
         TextView title;
@@ -310,7 +320,16 @@ class RecipesAdapter extends RecyclerView.Adapter<RecipesAdapter.ViewHolder> {
         void bind(Recipe recipe) {
             title.setText(recipe.getName().toUpperCase());
             viewRecipe.setText(context.getText(R.string.viewRecipe));
-            picture.setImageResource(R.drawable.default_picture_recipe);
+            if (!TextUtils.isEmpty(recipe.getImage()))
+                Picasso.with(context)
+                        .load(recipe.getImage())
+                        .centerCrop()
+                        .placeholder(R.drawable.default_picture_recipe)
+                        .error(R.drawable.default_picture_recipe)
+                        .fit()
+                        .into(picture);
+            else
+                picture.setImageResource(R.drawable.default_picture_recipe);
         }
     }
 

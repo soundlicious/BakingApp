@@ -4,6 +4,7 @@ import android.support.test.espresso.IdlingRegistry;
 import android.support.test.espresso.IdlingResource;
 
 import com.jakewharton.espresso.OkHttp3IdlingResource;
+
 import okhttp3.OkHttpClient;
 
 /**

@@ -6,7 +6,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.nfc.Tag;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;

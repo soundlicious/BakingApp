@@ -10,6 +10,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
@@ -23,10 +24,12 @@ import com.example.pablo.bakingapp.R;
 import com.example.pablo.bakingapp.bases.BaseFragment;
 import com.example.pablo.bakingapp.data.model.Step;
 import com.example.pablo.bakingapp.recipedetail.RecipeStepListActivity;
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
@@ -62,17 +65,25 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
     public static final String ARG_STEPS_LIST = "steps_list";
     public static final String ARG_STEP_IS_LAST = "isLastStep";
     private static final String TAG = RecipeStepFragment.class.getSimpleName();
+    private static final String PLAYER_POSITION = "playerPosition";
+    private static final String PLAYER_WINDOW = "playerWindow";
 
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     private Step step;
     private boolean isLastStep = true;
     private SimpleExoPlayer player;
+    private long position;
+    private int resumeWindow;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        clearResumePosition();
+        if (savedInstanceState != null && savedInstanceState.containsKey(PLAYER_POSITION))
+            position = savedInstanceState.getLong(PLAYER_POSITION);
+        if (savedInstanceState != null && savedInstanceState.containsKey(PLAYER_WINDOW))
+            resumeWindow = savedInstanceState.getInt(PLAYER_WINDOW);
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             step = getArguments().getParcelable(ARG_ITEM_ID);
             isLastStep = getArguments().getBoolean(ARG_STEP_IS_LAST, true);
@@ -81,6 +92,11 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
             if (step != null && actionBar != null)
                 actionBar.setTitle(step.getShortDescription());
         }
+    }
+
+    private void clearResumePosition() {
+        resumeWindow = C.INDEX_UNSET;
+        position = C.TIME_UNSET;
     }
 
     @Override
@@ -102,13 +118,15 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
     @Override
     public void onPause() {
         super.onPause();
-        if (player!=null) {
+        if (player != null) {
+            position = player.getCurrentPosition();
+            resumeWindow = player.getCurrentWindowIndex();
             player.release();
             player = null;
         }
     }
 
-    private void initPlayer(){
+    private void initPlayer() {
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         TrackSelection.Factory videoTrackSelectionFactory =
                 new AdaptiveTrackSelection.Factory(bandwidthMeter);
@@ -199,7 +217,7 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
             layoutPost = new SparseArray<>();
             if (step != null) {
                 pos = setMapLayout(step.getVideoURL(), layoutPost, pos, R.layout.step_video_card);
-//                pos = setMapLayout(step.getThumbnailURL(), layoutPost, pos, R.layout.step_thumbmail_card);
+                pos = setMapLayout(step.getThumbnailURL(), layoutPost, pos, R.layout.step_thumbmail_card);
                 pos = setMapLayout(step.getDescription(), layoutPost, pos, R.layout.step_description_card);
                 if (isLastStep)
                     Log.d(TAG, "setSparseArray, nextStep is null");
@@ -219,6 +237,7 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
         public class ViewHolderVideo extends ViewHolder {
             @BindView(R.id.exoPlayerView)
             PlayerView playerView;
+
             public ViewHolderVideo(View itemView) {
                 super(itemView);
                 ButterKnife.bind(this, itemView);
@@ -245,6 +264,9 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
 
                 // Prepare the player with the source.
                 player.prepare(videoSource);
+                if (resumeWindow != C.INDEX_UNSET)
+                    player.seekTo(resumeWindow, position);
+                player.setPlayWhenReady(true);
             }
         }
 
@@ -259,13 +281,16 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
 
             @Override
             public void bind(String str) {
-                Picasso.with(getContext())
-                        .load(str)
-                        .centerCrop()
-                        .placeholder(R.drawable.default_picture_recipe)
-                        .error(R.drawable.default_picture_recipe)
-                        .fit()
-                        .into(stepImg);
+                if (!TextUtils.isEmpty(str))
+                    Picasso.with(getContext())
+                            .load(str)
+                            .centerCrop()
+                            .placeholder(R.drawable.default_picture_recipe)
+                            .error(R.drawable.default_picture_recipe)
+                            .fit()
+                            .into(stepImg);
+                else
+                    stepImg.setImageResource(R.drawable.default_picture_recipe);
             }
         }
 
@@ -300,6 +325,14 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
                 changeFragment();
             }
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(PLAYER_POSITION, position);
+        outState.putInt(PLAYER_WINDOW, resumeWindow);
+
     }
 }
 
