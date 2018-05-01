@@ -3,6 +3,7 @@ package com.example.pablo.bakingapp.recipes;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -36,18 +37,24 @@ public class MainActivity extends BaseActivity implements IMVPMainView, RecipesA
 
     public static final String RECIPE = "recipe";
     private static final String RECIPE_LIST = "recipList";
+    private static final String LIST_STATE = "recyclerViewStatePosition";
+    private static final String TAG = "MaiActivityLog";
+
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
 
     private MainPresenter presenter;
     public RecipesAdapter adapter;
     @Nullable
+    private Parcelable listState;
     private CustomIdlingResource mIdlingResource;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.recycler_view);
+        if (savedInstanceState != null && savedInstanceState.containsKey(LIST_STATE))
+            listState = savedInstanceState.getParcelable(LIST_STATE);
         boolean isTablet = getResources().getBoolean(R.bool.material_responsive_is_tablet);
         setUnBinder(ButterKnife.bind(this));
         setView(isTablet);
@@ -79,8 +86,16 @@ public class MainActivity extends BaseActivity implements IMVPMainView, RecipesA
             ArrayList<Recipe> list = savedInstanceState.getParcelableArrayList(RECIPE_LIST);
             presenter.setRecipeList(list);
             updateList(list);
+            Log.i(TAG, "getRecipes - layoutManager Previous State : "
+                    + ((listState != null)?"nonnull":"null")
+                    + " list is : " + ((list != null)?"nonnull":"null"));
+            if (listState != null && list != null) {
+                recyclerView.getLayoutManager().onRestoreInstanceState(listState);
+            }
         } else {
             CustomIdlingResource customIdling = getIdlingResource();
+            Log.i(TAG, "getRecipes - going to feth recipe");
+
             if (customIdling != null)
                 customIdling.setIdle(false);
             presenter.fetchRecipeList();
@@ -113,11 +128,12 @@ public class MainActivity extends BaseActivity implements IMVPMainView, RecipesA
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
         ArrayList list = presenter.getRecipeList();
         if (list != null)
             outState.putParcelableArrayList(RECIPE_LIST, list);
+        outState.putParcelable(LIST_STATE, recyclerView.getLayoutManager().onSaveInstanceState());
     }
 
     @Override

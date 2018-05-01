@@ -62,11 +62,13 @@ import static android.app.Activity.RESULT_OK;
 
 public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
     public static final String ARG_ITEM_ID = "recipe_step";
-    public static final String ARG_STEPS_LIST = "steps_list";
     public static final String ARG_STEP_IS_LAST = "isLastStep";
     private static final String TAG = RecipeStepFragment.class.getSimpleName();
     private static final String PLAYER_POSITION = "playerPosition";
     private static final String PLAYER_WINDOW = "playerWindow";
+    private static final String PLAYER_STATE = "playerState";
+    private static final String PLAY_WHEN_READY = "playWhenReady";
+    private static final String LIST_STATE = "recyclerViewStatePosition";
 
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
@@ -75,15 +77,16 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
     private SimpleExoPlayer player;
     private long position;
     private int resumeWindow;
+    private int playbackState;
+    private boolean playWhenReady;
+    private Parcelable listState;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         clearResumePosition();
-        if (savedInstanceState != null && savedInstanceState.containsKey(PLAYER_POSITION))
-            position = savedInstanceState.getLong(PLAYER_POSITION);
-        if (savedInstanceState != null && savedInstanceState.containsKey(PLAYER_WINDOW))
-            resumeWindow = savedInstanceState.getInt(PLAYER_WINDOW);
+        if (savedInstanceState != null)
+            getPreviousState(savedInstanceState);
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             step = getArguments().getParcelable(ARG_ITEM_ID);
             isLastStep = getArguments().getBoolean(ARG_STEP_IS_LAST, true);
@@ -94,9 +97,25 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
         }
     }
 
+    private void getPreviousState(Bundle savedInstanceState) {
+        if (savedInstanceState.containsKey(PLAYER_POSITION))
+            position = savedInstanceState.getLong(PLAYER_POSITION);
+        if (savedInstanceState.containsKey(PLAYER_WINDOW))
+            resumeWindow = savedInstanceState.getInt(PLAYER_WINDOW);
+        if (savedInstanceState.containsKey(PLAYER_STATE))
+            playbackState = savedInstanceState.getInt(PLAYER_STATE);
+        if (savedInstanceState.containsKey(PLAY_WHEN_READY))
+            playWhenReady = savedInstanceState.getBoolean(PLAY_WHEN_READY);
+        if (savedInstanceState.containsKey(LIST_STATE))
+            listState = savedInstanceState.getParcelable(LIST_STATE);
+
+    }
+
     private void clearResumePosition() {
         resumeWindow = C.INDEX_UNSET;
         position = C.TIME_UNSET;
+        playbackState = Player.STATE_READY;
+        playWhenReady = true;
     }
 
     @Override
@@ -112,6 +131,8 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
         super.onResume();
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(new StepAdapter(step));
+        if (listState != null && step != null)
+            recyclerView.getLayoutManager().onRestoreInstanceState(listState);
         initPlayer();
     }
 
@@ -121,6 +142,8 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
         if (player != null) {
             position = player.getCurrentPosition();
             resumeWindow = player.getCurrentWindowIndex();
+            playbackState = player.getPlaybackState();
+            playWhenReady = player.getPlayWhenReady();
             player.release();
             player = null;
         }
@@ -266,7 +289,7 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
                 player.prepare(videoSource);
                 if (resumeWindow != C.INDEX_UNSET)
                     player.seekTo(resumeWindow, position);
-                player.setPlayWhenReady(true);
+                player.setPlayWhenReady(playWhenReady);
             }
         }
 
@@ -332,6 +355,9 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
         super.onSaveInstanceState(outState);
         outState.putLong(PLAYER_POSITION, position);
         outState.putInt(PLAYER_WINDOW, resumeWindow);
+        outState.putInt(PLAYER_STATE, playbackState);
+        outState.putBoolean(PLAY_WHEN_READY, playWhenReady);
+        outState.putParcelable(LIST_STATE, recyclerView.getLayoutManager().onSaveInstanceState());
 
     }
 }
