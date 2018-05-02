@@ -59,6 +59,7 @@ public class RecipeStepListActivity extends BaseActivity implements IMVPRecipeSt
     private boolean isBookmarked = false;
     private static final String LIST_STATE = "listState";
     private Parcelable listState;
+    private boolean hasSavedInstanceState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +71,8 @@ public class RecipeStepListActivity extends BaseActivity implements IMVPRecipeSt
         Intent intent = getIntent();
 
         recipe = null;
+        if (savedInstanceState != null && savedInstanceState.containsKey(LIST_STATE))
+            listState = savedInstanceState.getParcelable(LIST_STATE);
         if (intent != null)
             recipe = intent.getParcelableExtra(MainActivity.RECIPE);
 
@@ -96,11 +99,10 @@ public class RecipeStepListActivity extends BaseActivity implements IMVPRecipeSt
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        hasSavedInstanceState = savedInstanceState != null;
         if (recipe == null && savedInstanceState != null) {
             if (savedInstanceState.containsKey(MainActivity.RECIPE))
                 recipe = (Recipe) savedInstanceState.get(MainActivity.RECIPE);
-            if (savedInstanceState != null && savedInstanceState.containsKey(LIST_STATE))
-                listState = savedInstanceState.getParcelable(LIST_STATE);
         }
     }
 
@@ -144,6 +146,7 @@ public class RecipeStepListActivity extends BaseActivity implements IMVPRecipeSt
     @Override
     protected void onPause() {
         super.onPause();
+        listState = stepsView.getLayoutManager().onSaveInstanceState();
         saveRecipeInPref(TAG, MainActivity.RECIPE);
     }
 
@@ -222,9 +225,6 @@ public class RecipeStepListActivity extends BaseActivity implements IMVPRecipeSt
         stepsView.setAdapter(adapter);
         if (recipe != null && recipe.getSteps() != null && presenter.isTablet())
             setFragmentStep(recipe.getSteps().get(pos));
-        if (listState != null && recipe != null)
-            stepsView.getLayoutManager().onRestoreInstanceState(listState);
-
     }
 
     @Override
@@ -238,6 +238,11 @@ public class RecipeStepListActivity extends BaseActivity implements IMVPRecipeSt
     public void setList(Recipe recipe) {
         Log.d(TAG, "setList");
         adapter.updateList(recipe.getSteps(), recipe.getIngredients());
+        if (listState != null && recipe != null){
+            Log.i(TAG, "onResume : Restoring recyclerView State");
+            stepsView.getLayoutManager().onRestoreInstanceState(listState);
+        } else
+            Log.i(TAG, "onResume : nothing to restore stateList is : " +((listState!=null)?"nonNull":"null"));
     }
 
     @Override
@@ -258,7 +263,7 @@ public class RecipeStepListActivity extends BaseActivity implements IMVPRecipeSt
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(MainActivity.RECIPE, presenter.getRecipe());
-        outState.putParcelable(LIST_STATE, stepsView.getLayoutManager().onSaveInstanceState());
+        outState.putParcelable(LIST_STATE, listState);
     }
 
     private void openActivity(Step step) {
@@ -285,7 +290,8 @@ public class RecipeStepListActivity extends BaseActivity implements IMVPRecipeSt
         RecipeStepFragment fragment = new RecipeStepFragment();
         fragment.setArguments(arguments);
         Log.d(TAG, "setFragmentStep - pos : " + pos + " and is Last Step : " + isLastStep + " and adapterCount : " + adapter.getItemCount());
-        getSupportFragmentManager().beginTransaction()
+        if (!hasSavedInstanceState)
+            getSupportFragmentManager().beginTransaction()
                 .replace(R.id.item_detail_container, fragment)
                 .commit();
 

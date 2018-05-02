@@ -131,8 +131,11 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
         super.onResume();
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(new StepAdapter(step));
-        if (listState != null && step != null)
+        if (listState != null && step != null){
+            Log.i(TAG, "onResume : Restoring recyclerView State");
             recyclerView.getLayoutManager().onRestoreInstanceState(listState);
+        } else
+            Log.i(TAG, "onResume : nothing to restore : stateList is : " +((listState!=null)?"nonNull":"null"));
         initPlayer();
     }
 
@@ -147,6 +150,8 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
             player.release();
             player = null;
         }
+        if (recyclerView != null)
+            listState = recyclerView.getLayoutManager().onSaveInstanceState();
     }
 
     private void initPlayer() {
@@ -357,7 +362,7 @@ public class RecipeStepFragment extends BaseFragment implements RecipeStepView {
         outState.putInt(PLAYER_WINDOW, resumeWindow);
         outState.putInt(PLAYER_STATE, playbackState);
         outState.putBoolean(PLAY_WHEN_READY, playWhenReady);
-        outState.putParcelable(LIST_STATE, recyclerView.getLayoutManager().onSaveInstanceState());
+        outState.putParcelable(LIST_STATE, listState);
 
     }
 }
