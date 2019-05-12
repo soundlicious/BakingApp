@@ -16,7 +16,7 @@ Main Menu|Overview|Step
 
 Overview + Step | 
 :-------------------------:
-![](readme-res/BakingApp-tablet.png)| 
+![](readme-res/BakingApp-Tablet.png)| 
 ## Libraries
 * [rxAndroid](https://github.com/ReactiveX/RxAndroid) - Library for composing asynchronous and event-based programs by using observable sequences.
 * [Butterknife](https://jakewharton.github.io/butterknife/) - Field and method binding for Android views
